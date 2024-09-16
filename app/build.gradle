@@ -2,9 +2,24 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "org.jacoco") {
+                useVersion("0.8.7")
+            }
+        }
+    }
+}
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 30
     buildToolsVersion "29.0.2"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -16,7 +31,7 @@ android {
     defaultConfig {
         applicationId "com.siri.RearrangeScreens"
         minSdkVersion 24
-        targetSdkVersion 32
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
@@ -27,6 +42,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            testCoverageEnabled = true
         }
     }
 
@@ -47,6 +65,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+     androidTestImplementation 'androidx.test:rules:1.4.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation("org.robolectric:robolectric:3.1.4")
+  
     implementation project(path: ':RearrangeScreensModule')
 }
 
@@ -59,7 +81,8 @@ configurations {
 }
 
 dependencies {
-
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'androidx.test.ext:junit-ktx:1.1.4'
 
     ktlint("com.pinterest:ktlint:0.47.1") {
         attributes {
@@ -86,4 +109,12 @@ task ktlintFormat(type: JavaExec, group: "formatting") {
     args "-F", "src/**/*.kt"
     jvmArgs "--add-opens", "java.base/java.lang=ALL-UNNAMED"
     // see https://pinterest.github.io/ktlint/install/cli/#command-line-usage for more information
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
 }
